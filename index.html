@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Direborn</title>
+<meta name="description" content="Direborn — Indonesian Dota 2 esports and home of the Dire Battle circuit. Born to Regenerate. Directed to Dominate.">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: Signal / Mono Brutalist — visible 12-col grid, index rows, timecode reels, giant wordmarks.
+   Two sides share one system; only the signal color changes: Direborn = red, Dire Battle = green. */
+:root{
+  --bg:#0A0A0A; --surface:#121212; --raise:#181818; --line:#272727; --line-2:#3a3a3a;
+  --fg:#EDEDEA; --muted:#7D7D78; --dim:#4A4A47;
+  --red:#FF2B2B; --green:#2BD47D; --gold:#F2C14E;
+  --sig:var(--red); --on-sig:#0A0A0A;
+  --f-display:"Archivo","Arial Black",Impact,sans-serif;
+  --f-body:"Inter",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --max:1360px; --ease:cubic-bezier(.2,.7,.1,1);
+  color-scheme:dark;
+}
+[data-side="dbt"]{--sig:var(--green)}
+*{box-sizing:border-box}
+body{margin:0}
+img{max-width:100%}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--bg)}
+a{color:inherit}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+:focus-visible{outline:2px solid var(--sig);outline-offset:3px}
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.muted{color:var(--muted)}
+.sig{color:var(--sig)}
+.wrap{max-width:var(--max);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));position:relative}
+@media(min-width:900px){.wrap{padding-left:max(40px,env(safe-area-inset-left,0px));padding-right:max(40px,env(safe-area-inset-right,0px))}}
+
+/* visible 12-col grid */
+.grid-bg{position:fixed;inset:0;pointer-events:none;z-index:0}
+.grid-bg .wrap{height:100%;display:grid;grid-template-columns:repeat(12,1fr)}
+.grid-bg span{border-left:1px solid rgba(255,255,255,.04);height:100%}
+.grid-bg span:last-child{border-right:1px solid rgba(255,255,255,.04)}
+@media(max-width:700px){.grid-bg .wrap{grid-template-columns:repeat(4,1fr)}.grid-bg span:nth-child(n+5){display:none}.grid-bg span:nth-child(4){border-right:1px solid rgba(255,255,255,.04)}}
+main,header,footer{position:relative;z-index:1}
+
+/* meta bar */
+.meta{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--bg);border-bottom:1px solid var(--line)}
+.meta .wrap{display:flex;gap:24px;align-items:center;justify-content:space-between;min-height:44px;flex-wrap:wrap}
+.meta .mono{font-size:11px}
+.meta a{text-decoration:none;color:var(--sig);transition:color .2s}
+.meta a:hover{color:var(--fg)}
+.meta .opt{display:none}
+@media(min-width:900px){.meta .opt{display:inline}}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo i{width:10px;height:10px;background:var(--sig);display:block;transition:background .3s}
+
+/* view switching + wipe */
+.view{display:none}
+.view.on{display:block;animation:viewIn .5s var(--ease) both}
+@keyframes viewIn{from{transform:translateY(14px)}to{transform:none}}
+.wipe{position:fixed;inset:0;z-index:80;background:var(--sig);transform:scaleY(0);transform-origin:bottom;pointer-events:none}
+.wipe.go{animation:wipe .7s var(--ease) both}
+@keyframes wipe{0%{transform:scaleY(0);transform-origin:bottom}45%{transform:scaleY(1);transform-origin:bottom}55%{transform:scaleY(1);transform-origin:top}100%{transform:scaleY(0);transform-origin:top}}
+
+/* ===== GATEWAY ===== */
+.gate{display:flex;min-height:calc(100svh - 44px - 52px);border-bottom:1px solid var(--line)}
+.side{position:relative;flex:1 1 0;display:flex;flex-direction:column;justify-content:space-between;gap:40px;padding:40px max(16px,env(safe-area-inset-left,0px)) 40px max(24px,env(safe-area-inset-left,0px));text-decoration:none;overflow:hidden;transition:flex-grow .7s var(--ease),background .5s;min-width:0;border-right:1px solid var(--line)}
+.side+.side{border-right:0;padding-right:max(24px,env(safe-area-inset-right,0px))}
+@media(min-width:900px){.side{padding:56px 48px}.gate:hover .side{flex-grow:.7}.gate .side:hover,.gate .side:focus-visible{flex-grow:1.6}}
+.side.db{--sig:var(--red)}
+.side.dbt{--sig:var(--green)}
+.side::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--sig) 16%,transparent));opacity:0;transition:opacity .6s}
+.side:hover::after,.side:focus-visible::after{opacity:1}
+.side .top{display:flex;justify-content:space-between;gap:16px;position:relative;z-index:1}
+.side .tag{display:inline-flex;align-items:center;gap:10px}
+.side .tag b{width:9px;height:9px;background:var(--sig)}
+.side .bot{position:relative;z-index:1;display:grid;gap:24px}
+.side h2{font-family:var(--f-display);font-weight:900;font-size:clamp(56px,8.6vw,148px);line-height:.84;letter-spacing:-.045em;margin:0;text-transform:uppercase;transition:transform .7s var(--ease),color .4s}
+.side:hover h2{transform:translateX(6px)}
+.side h2 em{font-style:normal;color:var(--sig)}
+.side p{margin:0;max-width:40ch;color:var(--muted);font-size:17px}
+.facts{display:grid;gap:0;max-width:440px;overflow:hidden;max-height:0;opacity:0;transition:max-height .7s var(--ease),opacity .4s}
+.side:hover .facts,.side:focus-visible .facts{max-height:260px;opacity:1}
+@media(max-width:899px){.facts{max-height:none;opacity:1}}
+.facts div{display:grid;grid-template-columns:120px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.facts div span:last-child{color:var(--fg)}
+.enter{display:inline-flex;align-items:center;gap:14px;border:1px solid var(--fg);padding:15px 22px;width:max-content;font-family:var(--f-mono);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;transition:background .25s,color .25s,gap .3s,border-color .25s}
+.side:hover .enter,.side:focus-visible .enter{background:var(--sig);border-color:var(--sig);color:var(--on-sig);gap:22px}
+.choose{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;background:var(--bg);border:1px solid var(--line-2);padding:10px 14px;pointer-events:none;white-space:nowrap;transition:opacity .3s}
+.gate:hover .choose{opacity:0}
+.gate-wrap{position:relative}
+@media(max-width:899px){.gate{flex-direction:column}.side{border-right:0;border-bottom:1px solid var(--line);min-height:52svh}.choose{display:none}}
+
+.ticker{overflow:hidden;border-bottom:1px solid var(--line);white-space:nowrap;height:52px;display:flex;align-items:center}
+.ticker .track{display:inline-flex;gap:48px;animation:tick 40s linear infinite;padding-left:48px}
+.ticker span{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em;text-transform:uppercase}
+.ticker span.d{color:var(--sig)}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+/* ===== SIDE SHELL ===== */
+.subnav{border-bottom:1px solid var(--line);position:sticky;top:calc(env(safe-area-inset-top,0px) + 44px);z-index:40;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(8px)}
+.subnav .wrap{display:flex;align-items:center;gap:28px;min-height:52px;overflow-x:auto;scrollbar-width:none}
+.subnav .wrap::-webkit-scrollbar{display:none}
+.subnav button,.subnav a{display:inline-flex;gap:8px;align-items:baseline;white-space:nowrap;font-size:15px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;padding:6px 0;transition:color .2s}
+.subnav button small,.subnav a small{font-family:var(--f-mono);font-size:10px;color:var(--dim);transition:color .2s}
+.subnav button::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--sig);transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease)}
+.subnav button:hover{color:var(--fg)}
+.subnav button:hover small{color:var(--sig)}
+.subnav button:hover::after,.subnav button.cur::after{transform:scaleX(1)}
+.subnav .back{color:var(--fg)}
+.subnav .swap{margin-left:auto;color:var(--fg)}
+.subnav .swap b{color:var(--other);font-weight:700}
+
+section{border-bottom:1px solid var(--line);padding-block:72px;scroll-margin-top:110px}
+@media(min-width:900px){section{padding-block:104px}}
+.sec-head{display:flex;justify-content:space-between;align-items:end;gap:24px;flex-wrap:wrap;margin-bottom:40px}
+.sec-head h3{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,4.6vw,64px);line-height:.95;letter-spacing:-.035em;margin:0;text-wrap:balance}
+.sec-head .mono{display:block;margin-bottom:14px}
+
+/* hero */
+.hero{padding-block:56px 40px;border-bottom:0}
+.hero-grid{display:grid;gap:40px}
+@media(min-width:1000px){.hero-grid{grid-template-columns:7fr 5fr;align-items:start}}
+.statement{font-family:var(--f-body);font-weight:500;font-size:clamp(34px,4.4vw,60px);line-height:1.04;letter-spacing:-.035em;margin:0 0 20px;text-wrap:balance}
+.statement span{color:var(--sig)}
+.index{border-bottom:1px solid var(--line)}
+.index .row{display:grid;grid-template-columns:38px 112px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line);align-items:baseline;transition:background .2s,padding .3s var(--ease)}
+.index .row:hover{background:var(--surface);padding-left:8px}
+.index .row .v{font-weight:500;min-width:0}
+.blink{display:inline-block;width:8px;height:8px;background:var(--sig);margin-right:8px;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.15}}
+
+.btn{display:inline-flex;align-items:center;gap:12px;padding:15px 22px;border:1px solid var(--fg);font-family:var(--f-mono);font-weight:700;font-size:13px;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;transition:background .2s,color .2s,gap .3s var(--ease),border-color .2s}
+.btn:hover{background:var(--fg);color:var(--bg);gap:20px}
+.btn:active{transform:translateY(1px)}
+.btn.solid{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+.btn.solid:hover{background:var(--fg);border-color:var(--fg)}
+.btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+
+/* reel */
+.reel{position:relative;margin-top:40px;aspect-ratio:16/7;max-width:100%;min-height:260px;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 3px),radial-gradient(ellipse at 70% 40%,color-mix(in srgb,var(--sig) 22%,#1a1a1a),#060606 70%);border:1px solid var(--line);overflow:hidden}
+.reel .tc{position:absolute;left:20px;top:18px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.reel .plus{position:absolute;right:20px;top:14px;font-size:22px;color:var(--muted)}
+.reel .ph{position:absolute;right:20px;bottom:22px;color:var(--dim)}
+.reel .play{position:absolute;left:20px;bottom:20px}
+.reel .scan{position:absolute;inset:0;background:linear-gradient(180deg,transparent,color-mix(in srgb,var(--sig) 10%,transparent),transparent);height:30%;animation:scan 5s linear infinite}
+@keyframes scan{from{transform:translateY(-100%)}to{transform:translateY(400%)}}
+.reel .corner{position:absolute;width:18px;height:18px;border-color:var(--sig);border-style:solid;border-width:0}
+.reel .c1{left:-1px;top:-1px;border-left-width:2px;border-top-width:2px}
+.reel .c2{right:-1px;bottom:-1px;border-right-width:2px;border-bottom-width:2px}
+
+/* roster */
+.roster{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.card{position:relative;border:1px solid var(--line);background:var(--surface);aspect-ratio:3/4;max-width:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:16px;transition:border-color .3s}
+.card .photo{position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 4px),linear-gradient(180deg,#1b1b1b,#0c0c0c);transition:transform .8s var(--ease)}
+.card .photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,var(--sig));opacity:0;mix-blend-mode:multiply;transition:opacity .5s}
+.card:hover{border-color:var(--sig)}
+.card:hover .photo{transform:scale(1.06)}
+.card:hover .photo::after{opacity:.9}
+.card > *:not(.photo){position:relative}
+.card .id{font-family:var(--f-display);font-weight:900;font-size:clamp(34px,3.2vw,44px);line-height:.9;letter-spacing:-.04em;transition:transform .5s var(--ease)}
+.card:hover .id{transform:translateY(-6px)}
+.card .nm{font-size:14px;color:var(--muted);margin-top:8px;transition:color .3s}
+.card:hover .nm{color:var(--fg)}
+.card .ph{color:var(--dim)}
+
+/* empty state */
+.empty{border:1px dashed var(--line-2);padding:40px 28px;display:grid;gap:16px;max-width:760px}
+.empty h4{font-size:22px;margin:0;font-weight:600;letter-spacing:-.01em}
+.empty p{margin:0;color:var(--muted);max-width:56ch}
+
+/* path */
+.path{display:grid;gap:0;border-top:1px solid var(--line)}
+@media(min-width:900px){.path{grid-template-columns:repeat(4,1fr);border-top:0}}
+.step{padding:28px 24px 32px;border-bottom:1px solid var(--line);position:relative;transition:background .3s}
+@media(min-width:900px){.step{border-bottom:0;border-left:1px solid var(--line)}.step:last-child{border-right:1px solid var(--line)}}
+.step:hover{background:var(--surface)}
+.step .n{font-family:var(--f-display);font-weight:900;font-size:64px;line-height:1;letter-spacing:-.05em;color:var(--dim);transition:color .3s}
+.step:hover .n,.step.now .n{color:var(--sig)}
+.step h4{margin:18px 0 8px;font-size:22px;font-weight:600;letter-spacing:-.015em}
+.step p{margin:0;color:var(--muted);font-size:15px}
+.step .st{margin-top:18px;display:inline-block;padding:4px 8px;border:1px solid var(--line-2)}
+.step.done .st{color:var(--muted)}
+.step.now .st{border-color:var(--sig);color:var(--sig)}
+.side-ev{margin-top:20px}
+
+/* register */
+.reg{display:grid;gap:32px}
+@media(min-width:1000px){.reg{grid-template-columns:6fr 6fr}}
+.count{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line)}
+.count div{padding:18px 16px;border-left:1px solid var(--line)}
+.count div:first-child{border-left:0}
+.count b{display:block;font-family:var(--f-display);font-weight:900;font-size:clamp(36px,4.4vw,64px);line-height:1;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+.count .mono{margin-top:8px;display:block;color:var(--muted);font-size:11px}
+.rules{list-style:none;margin:0;padding:0;border-bottom:1px solid var(--line)}
+.rules li{display:grid;grid-template-columns:24px 1fr;gap:12px;padding:14px 0;border-top:1px solid var(--line)}
+.rules li::before{content:"+";color:var(--sig);font-family:var(--f-mono)}
+
+/* results */
+.final{border:1px solid var(--line)}
+.final-head{display:grid;gap:16px;padding:24px;border-bottom:1px solid var(--line)}
+@media(min-width:800px){.final-head{grid-template-columns:1fr auto 1fr;align-items:center}}
+.team{font-family:var(--f-display);font-weight:800;font-size:clamp(28px,3.4vw,44px);letter-spacing:-.03em;line-height:1}
+.team.r{text-align:right}
+@media(max-width:799px){.team.r{text-align:left}}
+.score{font-family:var(--f-display);font-weight:900;font-size:clamp(56px,7vw,96px);line-height:1;letter-spacing:-.05em;text-align:center;font-variant-numeric:tabular-nums}
+@media(max-width:799px){.score{text-align:left}}
+.score i{font-style:normal;color:var(--dim);padding:0 .1em}
+.wtag{display:inline-block;margin-top:8px;color:var(--gold)}
+.games{overflow-x:auto}
+.game{display:grid;grid-template-columns:80px 92px minmax(180px,1fr) 88px minmax(180px,1fr);gap:16px;align-items:center;padding:14px 24px;border-top:1px solid var(--line);min-width:760px;position:relative;transition:background .2s}
+.game:first-child{border-top:0}
+.game::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--sig);transform:scaleY(0);transition:transform .3s var(--ease)}
+.game:hover{background:var(--surface)}
+.game:hover::before{transform:scaleY(1)}
+.game .h{font-size:13px;color:var(--muted);transition:color .2s}
+.game:hover .h{color:var(--fg)}
+.game .h.r{text-align:right}
+.game .k{font-family:var(--f-mono);font-weight:700;font-size:17px;text-align:center;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:3px 7px;border:1px solid var(--line-2);font-size:10px}
+.chip.w{background:var(--sig);border-color:var(--sig);color:var(--on-sig)}
+.games-head{display:grid;grid-template-columns:80px 92px minmax(180px,1fr) 88px minmax(180px,1fr);gap:16px;padding:10px 24px;border-bottom:1px solid var(--line);min-width:760px;color:var(--muted)}
+
+.series{margin-top:12px;border:1px solid var(--line)}
+.srow{width:100%;display:grid;grid-template-columns:1fr auto 1fr 28px;gap:16px;align-items:center;padding:18px 24px;border-top:1px solid var(--line);text-align:left;transition:background .2s}
+.srow:first-of-type{border-top:0}
+.srow:hover{background:var(--surface)}
+.srow .t{font-weight:600;font-size:17px;min-width:0}
+.srow .t.r{text-align:right}
+.srow .s{font-family:var(--f-mono);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;padding:4px 10px;border:1px solid var(--line-2);transition:border-color .2s,color .2s}
+.srow:hover .s{border-color:var(--sig);color:var(--sig)}
+.srow .x{font-family:var(--f-mono);color:var(--muted);transition:transform .3s var(--ease)}
+.srow[aria-expanded="true"] .x{transform:rotate(45deg);color:var(--sig)}
+.sdetail{border-top:1px solid var(--line);background:var(--surface);overflow-x:auto}
+.stat{width:100%;border-collapse:collapse;min-width:620px;font-variant-numeric:tabular-nums}
+.stat th,.stat td{padding:10px 24px;text-align:left;border-top:1px solid var(--line);font-size:14px}
+.stat th{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.stat td.w{color:var(--sig);font-weight:600}
+.nodetail{padding:16px 24px;color:var(--muted);font-size:14px}
+
+/* tournaments table */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line)}
+.tbl{width:100%;border-collapse:collapse;min-width:760px}
+.tbl th,.tbl td{text-align:left;padding:16px 20px;border-top:1px solid var(--line);vertical-align:baseline}
+.tbl thead th{border-top:0;font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tbl tbody tr{transition:background .2s}
+.tbl tbody tr:hover{background:var(--surface)}
+.tbl .nm{font-weight:600;font-size:17px}
+.tbl .num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line-2);font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.pill.open{border-color:var(--sig);color:var(--sig)}
+.pill.open::before{content:"";width:6px;height:6px;background:var(--sig);animation:blink 1.2s steps(2) infinite}
+.pill.done{color:var(--muted)}
+
+/* two col prose */
+.two{display:grid;gap:40px}
+@media(min-width:1000px){.two{grid-template-columns:5fr 7fr}}
+.prose p{margin:0 0 18px;font-size:19px;line-height:1.55;max-width:58ch;color:#cfcfca}
+.prose p:last-child{margin-bottom:0}
+
+.socials{display:grid;gap:0;border-bottom:1px solid var(--line)}
+.socials a{display:grid;grid-template-columns:1fr auto;gap:16px;padding:18px 0;border-top:1px solid var(--line);text-decoration:none;transition:padding .3s var(--ease),color .2s}
+.socials a:hover{padding-left:12px;color:var(--sig)}
+.socials a span:first-child{font-size:20px;font-weight:500}
+
+/* footer wordmark */
+.foot{padding-block:48px 24px;overflow:hidden}
+.foot .links{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;margin-bottom:28px}
+.foot .links a,.foot .links button{text-decoration:none;color:var(--muted);transition:color .2s}
+.foot .links a:hover,.foot .links button:hover{color:var(--fg)}
+.wordmark{position:relative;font-family:var(--f-display);font-weight:900;text-transform:uppercase;line-height:.78;letter-spacing:-.06em;font-size:clamp(52px,16vw,250px);white-space:nowrap;margin:0}
+.wordmark.long{font-size:clamp(40px,12.2vw,190px)}
+.wordmark .sq{display:inline-block;width:.16em;height:.16em;background:var(--sig);vertical-align:top;margin-left:.04em;transition:transform .6s var(--ease)}
+.foot:hover .sq{transform:rotate(90deg)}
+.copy{margin-top:24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;color:var(--dim)}
+
+/* load stagger (starts visible-ish: only motion, never hidden) */
+.rise{animation:rise .8s var(--ease) both}
+.rise.d1{animation-delay:.06s}.rise.d2{animation-delay:.12s}.rise.d3{animation-delay:.18s}.rise.d4{animation-delay:.24s}
+@keyframes rise{from{transform:translateY(18px)}to{transform:none}}
+
+/* ===== FX: canvases, cursor, glitch, cards, meters, minimap ===== */
+.fx{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.9}
+.side .top,.side .bot{z-index:2}
+.cursor{position:fixed;left:0;top:0;z-index:90;pointer-events:none;mix-blend-mode:difference;display:none}
+@media(pointer:fine){.cursor{display:block}}
+.cursor .x{position:absolute;left:-12px;top:-.5px;width:24px;height:1px;background:#fff}
+.cursor .y{position:absolute;top:-12px;left:-.5px;width:1px;height:24px;background:#fff}
+.cursor .lbl{position:absolute;left:14px;top:10px;font-family:var(--f-mono);font-size:10px;color:#fff;white-space:nowrap;letter-spacing:.04em}
+.cursor.hot .x,.cursor.hot .y{background:#fff;transform:scale(1.8)}
+.cursor .x,.cursor .y{transition:transform .25s var(--ease)}
+
+.glitch{position:relative;display:inline-block}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;inset:0;opacity:0;pointer-events:none}
+.glitch::before{color:var(--red);transform:translate(-3px,0)}
+.glitch::after{color:var(--green);transform:translate(3px,0)}
+.glitch:hover::before,.card:hover .glitch::before,.foot:hover .glitch::before{opacity:.8;animation:gl1 .9s steps(2) infinite}
+.glitch:hover::after,.card:hover .glitch::after,.foot:hover .glitch::after{opacity:.8;animation:gl2 .9s steps(2) infinite}
+@keyframes gl1{0%{clip-path:inset(0 0 70% 0)}33%{clip-path:inset(40% 0 30% 0)}66%{clip-path:inset(75% 0 0 0)}100%{clip-path:inset(10% 0 80% 0)}}
+@keyframes gl2{0%{clip-path:inset(60% 0 10% 0)}33%{clip-path:inset(5% 0 75% 0)}66%{clip-path:inset(30% 0 45% 0)}100%{clip-path:inset(80% 0 0 0)}}
+
+/* roster v2 */
+.card{transform-style:preserve-3d;transition:border-color .3s,transform .4s var(--ease)}
+.card .photo{display:flex;align-items:flex-end;justify-content:center}
+.card .photo svg{width:88%;height:auto;opacity:.9;transition:transform .8s var(--ease)}
+.card:hover .photo svg{transform:translateY(-4px)}
+.card .pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.15);transition:filter .5s,transform .8s var(--ease)}
+.card:hover .pimg{filter:grayscale(0) contrast(1.05);transform:scale(1.05)}
+.card .halftone{position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.55) 1px,transparent 1.4px);background-size:4px 4px;mix-blend-mode:multiply;opacity:.5;pointer-events:none}
+.card .ghost{position:absolute;right:-6px;top:12px;writing-mode:vertical-rl;font-family:var(--f-display);font-weight:900;font-size:64px;line-height:1;letter-spacing:-.04em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.12);text-transform:uppercase;pointer-events:none;transition:-webkit-text-stroke-color .4s,transform .8s var(--ease)}
+.card:hover .ghost{-webkit-text-stroke-color:var(--sig);transform:translateY(10px)}
+.card .ctop{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.card .pick{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line-2);padding:4px 7px;background:rgba(0,0,0,.5);opacity:0;transition:opacity .25s,border-color .2s}
+.card:hover .pick,.card:focus-within .pick{opacity:1}
+.card .pick:hover{border-color:var(--sig);color:var(--sig)}
+.card.drag{border-color:var(--sig);border-style:dashed}
+.card .scanl{position:absolute;left:0;right:0;height:2px;background:var(--sig);top:0;opacity:0;box-shadow:0 0 12px var(--sig)}
+.card:hover .scanl{opacity:.8;animation:cardscan 1.6s var(--ease) infinite}
+@keyframes cardscan{from{top:0}to{top:100%}}
+.rost-note{margin-top:16px}
+
+/* meters on reel */
+.meter{position:absolute;right:20px;bottom:64px;display:flex;align-items:flex-end;gap:3px;height:56px}
+.meter i{width:4px;background:var(--sig);opacity:.75;height:30%;animation:meter 1s ease-in-out infinite alternate}
+@keyframes meter{to{height:100%}}
+.reel .big{position:absolute;left:20px;right:20px;top:50%;transform:translateY(-50%);font-family:var(--f-display);font-weight:900;font-size:clamp(48px,11vw,170px);line-height:.8;letter-spacing:-.05em;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.14);white-space:nowrap;overflow:hidden;text-transform:uppercase}
+.reel .big span{display:inline-block;animation:slide 18s linear infinite}
+@keyframes slide{to{transform:translateX(-50%)}}
+
+/* minimap */
+.minimap{position:absolute;right:20px;top:52px;width:clamp(120px,18vw,210px);aspect-ratio:1;max-width:100%;border:1px solid var(--line-2);background:rgba(0,0,0,.45)}
+.minimap svg{width:100%;height:100%;display:block}
+.minimap .lane{stroke:rgba(255,255,255,.28);stroke-width:1.4;fill:none}
+.minimap .river{stroke:color-mix(in srgb,var(--sig) 60%,transparent);stroke-width:6;fill:none;opacity:.35}
+.minimap .dot{fill:var(--sig)}
+.minimap .dot.e{fill:var(--red)}
+.minimap .ping{fill:none;stroke:var(--sig);stroke-width:1.5;transform-box:fill-box;transform-origin:center;animation:ping 2s ease-out infinite}
+@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(2.6);opacity:0}}
+.minimap .mv{animation:mv 6s ease-in-out infinite alternate}
+.minimap .mv2{animation:mv2 7s ease-in-out infinite alternate}
+@keyframes mv{to{transform:translate(40px,-40px)}}
+@keyframes mv2{to{transform:translate(-30px,30px)}}
+.minimap .cap{position:absolute;left:8px;bottom:6px;font-size:9px}
+@media(max-width:700px){.minimap{display:none}}
+
+/* kill bars */
+.kbar{display:flex;height:3px;margin-top:6px;background:var(--line)}
+.kbar i{display:block;height:100%;background:var(--fg);transition:width 1s var(--ease)}
+.kbar i+i{background:var(--dim)}
+.game:hover .kbar i:first-child{background:var(--sig)}
+
+/* outline marquee band */
+.band{overflow:hidden;border-bottom:1px solid var(--line);padding-block:18px;white-space:nowrap}
+.band .track{display:inline-flex;gap:40px;animation:tick 30s linear infinite;align-items:center}
+.band.rev .track{animation-direction:reverse}
+.band span{font-family:var(--f-display);font-weight:900;font-size:clamp(44px,7vw,110px);line-height:.9;letter-spacing:-.045em;text-transform:uppercase;color:transparent;-webkit-text-stroke:1px var(--line-2);transition:color .3s}
+.band span.f{color:var(--fg);-webkit-text-stroke:0}
+.band i{width:.3em;height:.3em;background:var(--sig);display:inline-block;font-size:clamp(44px,7vw,110px)}
+.band:hover span{-webkit-text-stroke-color:var(--sig)}
+
+/* path pulse line */
+.path{position:relative}
+.path::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--sig),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:pulse 3.2s linear infinite}
+@keyframes pulse{from{background-position:-40% 0}to{background-position:140% 0}}
+
+/* step tick fill */
+.step .bar{height:2px;background:var(--line);margin-top:18px;position:relative;overflow:hidden}
+.step .bar i{position:absolute;inset:0;background:var(--sig);transform-origin:left}
+.step.done .bar i{transform:scaleX(1)}
+.step:not(.done) .bar i{transform:scaleX(.08);animation:load 2.4s ease-in-out infinite alternate}
+@keyframes load{to{transform:scaleX(.35)}}
+
+@media(prefers-reduced-motion:reduce){
+  .band .track,.reel .big span{animation:none}
+  .cursor{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .ticker .track{animation:none}
+}
+</style>
+</head>
+<body>
+
+<div class="grid-bg" aria-hidden="true"><div class="wrap"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="cursor" id="cursor" aria-hidden="true"><i class="x"></i><i class="y"></i><span class="lbl" id="cxy">X 0000 · Y 0000</span></div>
+
+<header class="meta">
+  <div class="wrap">
+    <a href="#" class="logo mono" data-go="" style="color:var(--fg)"><i></i>DB/26 — Direborn Esports</a>
+    <span class="mono muted opt">Indonesia · SEA Dota 2</span>
+    <span class="mono muted opt" id="clock">WIB --:--:--</span>
+    <a class="mono" href="https://s.id/direborn_comm" target="_blank" rel="noopener">[ Join our community ↗ ]</a>
+  </div>
+</header>
+
+<main>
+
+<!-- ================= GATEWAY ================= -->
+<div class="view" id="v-gate" data-side="db">
+  <div class="gate-wrap">
+    <div class="gate">
+      <a class="side db" href="#direborn" data-go="direborn">
+        <canvas class="fx" data-fx="wave" aria-hidden="true"></canvas>
+        <div class="top">
+          <span class="tag mono"><b></b>Side A — The team</span>
+          <span class="mono muted">Roster · Reel · Matches</span>
+        </div>
+        <div class="bot">
+          <h2 class="rise">Dire<br>born<em>.</em></h2>
+          <p class="rise d1">Indonesian Dota 2 team competing in SEA. Meet the roster, watch the reel, follow the matches.</p>
+          <div class="facts mono">
+            <div><span class="muted">Roster</span><span>Dreamocel · woMy · PotaT2 · db- · dalul</span></div>
+            <div><span class="muted">Region</span><span>SEA</span></div>
+          </div>
+          <span class="enter">Enter Direborn <span aria-hidden="true">→</span></span>
+        </div>
+      </a>
+      <a class="side dbt" href="#direbattle" data-go="direbattle">
+        <canvas class="fx" data-fx="bracket" aria-hidden="true"></canvas>
+        <div class="top">
+          <span class="tag mono"><b></b>Side B — The tournament</span>
+          <span class="mono muted">Uprising 1 · Open</span>
+        </div>
+        <div class="bot">
+          <h2 class="rise d1">Dire<br>battle<em>.</em></h2>
+          <p class="rise d2">Dota 2 tournaments by Direborn for Indonesia’s next pro players, from the Open Series to the Cup.</p>
+          <div class="facts mono">
+            <div><span class="muted">Next up</span><span>Uprising 1 — Nov 20, 2026</span></div>
+            <div><span class="muted">Prize pool</span><span>IDR 10.000.000</span></div>
+            <div><span class="muted">Status</span><span class="sig" data-reg-short>Open Registration</span></div>
+          </div>
+          <span class="enter">Enter Dire Battle <span aria-hidden="true">→</span></span>
+        </div>
+      </a>
+    </div>
+    <div class="choose mono">( Choose a side )</div>
+  </div>
+  <div class="ticker" aria-hidden="true"><div class="track" id="ticker"></div></div>
+</div>
+
+<!-- ================= DIREBORN ================= -->
+<div class="view" id="v-direborn" data-side="db" style="--other:var(--green)">
+  <nav class="subnav" aria-label="Direborn">
+    <div class="wrap">
+      <button class="back" data-go="">← Gateway</button>
+      <button data-to="db-roster"><small>A1</small>Roster</button>
+      <button data-to="db-reel"><small>A2</small>Reel</button>
+      <button data-to="db-matches"><small>A3</small>Matches</button>
+      <button data-to="db-partners"><small>A4</small>Partners</button>
+      <a class="swap" href="#direbattle" data-go="direbattle">Switch to <b>Dire Battle</b> →</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="mono muted rise">( Side A — The team )</p>
+          <h1 class="statement rise d1">Born to Regenerate.<br><span>Directed to Dominate.</span></h1>
+          <p class="mono muted rise d2">Direborn · Indonesian Dota 2 esports</p>
+          <div class="btns rise d3">
+            <button class="btn solid" data-to="db-roster">Meet the roster <span aria-hidden="true">→</span></button>
+            <button class="btn" data-to="db-reel">Watch the reel</button>
+          </div>
+        </div>
+        <div class="index rise d2">
+          <div class="row"><span class="mono muted">001</span><span class="mono muted">Game</span><span class="v">Dota 2</span></div>
+          <div class="row"><span class="mono muted">002</span><span class="mono muted">Region</span><span class="v">SEA</span></div>
+          <div class="row"><span class="mono muted">003</span><span class="mono muted">Roster</span><span class="v">5 players</span></div>
+          <div class="row"><span class="mono muted">004</span><span class="mono muted">Also runs</span><span class="v"><a href="#direbattle" data-go="direbattle" style="color:var(--green)">Dire Battle ↗</a></span></div>
+        </div>
+      </div>
+      <div class="reel rise d3" id="db-reel-top">
+        <div class="scan"></div><i class="corner c1"></i><i class="corner c2"></i>
+        <div class="tc mono"><span class="blink"></span>REC <span data-tc>00:00:00:00</span> — Reel / Direborn</div>
+        <div class="plus">+</div>
+        <div class="big" aria-hidden="true"><span>Direborn ■ Direborn ■ Direborn ■ Direborn ■ Direborn ■ Direborn ■ </span></div>
+        <div class="meter" aria-hidden="true" id="meter-db"></div>
+        <div class="ph mono">Video placeholder — team reel</div>
+        <a class="btn play" href="https://www.instagram.com/direbornesports/" target="_blank" rel="noopener">▶ Play reel</a>
+      </div>
+    </div>
+  </section>
+  <div class="band" aria-hidden="true"><div class="track"><span class="f">Dreamocel</span><i></i><span>woMy</span><i></i><span class="f">PotaT2</span><i></i><span>db-</span><i></i><span class="f">dalul</span><i></i><span>Dreamocel</span><i></i><span class="f">woMy</span><i></i><span>PotaT2</span><i></i><span class="f">db-</span><i></i><span>dalul</span><i></i></div></div>
+
+  <section id="db-roster">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="mono sig">A1 — Roster</span><h3>The five.</h3></div>
+        <span class="mono muted">05 / 05 players</span>
+      </div>
+      <div class="roster" id="roster"></div>
+      <p class="mono muted rost-note">Photo slots: drop an image on a card (or tap “Preview photo”) to see it in the layout. Previews stay in your browser only.</p>
+    </div>
+  </section>
+
+  <section id="db-reel">
+    <div class="wrap two">
+      <div>
+        <span class="mono sig">A2 — Reel</span>
+        <h3 class="statement" style="margin-top:14px">Every match, cut for the timeline.</h3>
+      </div>
+      <div class="prose">
+        <p>Long-form match content and short-form clips from the team’s run in SEA. New uploads land on Instagram, Threads, X and YouTube first.</p>
+        <div class="socials" style="margin-top:28px">
+          <a href="https://www.instagram.com/direbornesports/" target="_blank" rel="noopener"><span>Instagram</span><span class="mono muted">@direbornesports ↗</span></a>
+          <a href="https://x.com/direbornesports" target="_blank" rel="noopener"><span>X</span><span class="mono muted">@direbornesports ↗</span></a>
+          <a href="https://www.facebook.com/direbornesports" target="_blank" rel="noopener"><span>Facebook</span><span class="mono muted">direbornesports ↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="db-matches">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="mono sig">A3 — Matches</span><h3>Fixtures &amp; results.</h3></div>
+      </div>
+      <div class="empty">
+        <span class="mono muted">[ Feed empty — waiting for data ]</span>
+        <h4>Direborn’s next match will appear here.</h4>
+        <p>Fixtures and results load from the match feed once they are scheduled. Until then, match-day updates go out on Instagram Stories.</p>
+        <div><a class="btn" href="https://www.instagram.com/direbornesports/" target="_blank" rel="noopener">Follow @direbornesports ↗</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="db-partners">
+    <div class="wrap two">
+      <div>
+        <span class="mono sig">A4 — Partners</span>
+        <h3 class="statement" style="margin-top:14px">Partner with Direborn.</h3>
+      </div>
+      <div class="prose">
+        <p>We are building partnerships across the team and the Dire Battle circuit: jersey and stream placements, tournament presenting rights, and content series with Indonesian Dota 2 fans.</p>
+        <div class="btns">
+          <a class="btn solid" href="https://www.instagram.com/direbornesports/" target="_blank" rel="noopener">Start a conversation ↗</a>
+          <a class="btn" href="#direbattle" data-go="direbattle">See Dire Battle</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="links mono">
+        <button data-go="">Gateway</button>
+        <a href="#direbattle" data-go="direbattle">Dire Battle</a>
+        <a href="https://www.instagram.com/direbornesports/" target="_blank" rel="noopener">Instagram ↗</a>
+        <a href="https://x.com/direbornesports" target="_blank" rel="noopener">X ↗</a>
+        <a href="https://s.id/direborn_comm" target="_blank" rel="noopener">Community ↗</a>
+      </div>
+      <p class="wordmark" aria-label="Direborn"><span class="glitch" data-text="Direborn">Direborn</span><span class="sq"></span></p>
+      <div class="copy mono"><span>© 2026 Direborn Esports. All rights reserved.</span><span>Born to Regenerate. Directed to Dominate.</span></div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================= DIRE BATTLE ================= -->
+<div class="view" id="v-direbattle" data-side="dbt" style="--other:var(--red)">
+  <nav class="subnav" aria-label="Dire Battle">
+    <div class="wrap">
+      <button class="back" data-go="">← Gateway</button>
+      <button data-to="dbt-reg"><small>B1</small>Registration</button>
+      <button data-to="dbt-path"><small>B2</small>Pro Circuit</button>
+      <button data-to="dbt-results"><small>B3</small>Results</button>
+      <button data-to="dbt-events"><small>B4</small>Tournaments</button>
+      <button data-to="dbt-about"><small>B5</small>About</button>
+      <a class="swap" href="#direborn" data-go="direborn">Switch to <b>Direborn</b> →</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <p class="mono muted rise">( Side B — The tournament )</p>
+          <h1 class="statement rise d1">Open Dota 2 tournaments for <span>Indonesia’s next pro players.</span></h1>
+          <p class="mono muted rise d2">Dire Battle · Dota 2 circuit by Direborn Esports</p>
+          <div class="btns rise d3">
+            <a class="btn solid" href="https://www.direborn.team/registration" target="_blank" rel="noopener">Register for Uprising 1 ↗</a>
+            <button class="btn" data-to="dbt-results">Watch the Grand Final</button>
+          </div>
+        </div>
+        <div class="index rise d2">
+          <div class="row"><span class="mono muted">001</span><span class="mono muted">Next</span><span class="v">Uprising 1</span></div>
+          <div class="row"><span class="mono muted">002</span><span class="mono muted">Event</span><span class="v">Nov 20–22, 2026 · Online</span></div>
+          <div class="row"><span class="mono muted">003</span><span class="mono muted">Prize pool</span><span class="v">IDR 10.000.000</span></div>
+          <div class="row"><span class="mono muted">004</span><span class="mono muted">Status</span><span class="v sig"><span class="blink"></span><span data-reg-long>Open Registration</span></span></div>
+          <div class="row"><span class="mono muted">005</span><span class="mono muted">Last final</span><span class="v">Maxwell+4 3:2 chad</span></div>
+        </div>
+      </div>
+      <div class="reel rise d3">
+        <div class="scan"></div><i class="corner c1"></i><i class="corner c2"></i>
+        <div class="tc mono"><span class="blink"></span>REC <span data-tc>00:00:00:00</span> — Reel / Grand Final / Uprising</div>
+        <div class="plus">+</div>
+        <div class="big" aria-hidden="true"><span>Uprising 1 ■ Dire Battle ■ Uprising 1 ■ Dire Battle ■ Uprising 1 ■ Dire Battle ■ </span></div>
+        <div class="minimap" aria-hidden="true">
+          <svg viewBox="0 0 200 200">
+            <path class="river" d="M8 192 L192 8"/>
+            <path class="lane" d="M22 178 L22 22 L178 22"/>
+            <path class="lane" d="M22 178 L178 22"/>
+            <path class="lane" d="M22 178 L178 178 L178 22"/>
+            <rect x="8" y="164" width="28" height="28" fill="none" stroke="currentColor" style="stroke:var(--sig)"/>
+            <rect x="164" y="8" width="28" height="28" fill="none" style="stroke:var(--red)"/>
+            <g class="mv"><circle class="dot" cx="70" cy="130" r="4"/><circle class="ping" cx="70" cy="130" r="6"/></g>
+            <g class="mv2"><circle class="dot e" cx="130" cy="70" r="4"/></g>
+            <circle class="dot" cx="22" cy="90" r="3.5"/><circle class="dot e" cx="110" cy="22" r="3.5"/>
+            <circle class="dot" cx="140" cy="178" r="3.5"/><circle class="dot e" cx="178" cy="120" r="3.5"/>
+            <circle class="ping" cx="100" cy="100" r="7" style="animation-delay:1s"/>
+          </svg>
+          <span class="mono muted cap">Map · live feed</span>
+        </div>
+        <div class="ph mono">Video placeholder — Grand Final reel</div>
+        <a class="btn play" href="https://www.instagram.com/direbattle/" target="_blank" rel="noopener">▶ Play reel</a>
+      </div>
+    </div>
+  </section>
+  <div class="band rev" aria-hidden="true"><div class="track"><span class="f">Open Series</span><i></i><span>Dire Battle Cup</span><i></i><span class="f">Liga Nasional</span><i></i><span>Internasional</span><i></i><span class="f">Open Series</span><i></i><span>Dire Battle Cup</span><i></i><span class="f">Liga Nasional</span><i></i><span>Internasional</span><i></i></div></div>
+
+  <section id="dbt-reg">
+    <div class="wrap reg">
+      <div>
+        <span class="mono sig">B1 — Registration</span>
+        <h3 class="statement" style="margin-top:14px">Uprising 1 is open. Registration closes Nov 16.</h3>
+        <ul class="rules">
+          <li>Open to every team: young talent, veterans who never got their chance, and casual squads.</li>
+          <li>No age limit. Young players are the priority, because Dire Battle exists to regenerate Indonesia’s pro scene.</li>
+          <li>The best teams advance to the next tournaments on the Pro Circuit.</li>
+        </ul>
+        <div class="btns"><a class="btn solid" href="https://www.direborn.team/registration" target="_blank" rel="noopener">Register your team ↗</a></div>
+      </div>
+      <div>
+        <p class="mono muted" style="margin:0 0 12px">Registration closes in</p>
+        <div class="count" id="count">
+          <div><b data-c="d">--</b><span class="mono">Days</span></div>
+          <div><b data-c="h">--</b><span class="mono">Hours</span></div>
+          <div><b data-c="m">--</b><span class="mono">Min</span></div>
+          <div><b data-c="s">--</b><span class="mono">Sec</span></div>
+        </div>
+        <div class="index" style="margin-top:28px">
+          <div class="row"><span class="mono muted">→</span><span class="mono muted">Registration</span><span class="v">Nov 7–16, 2026</span></div>
+          <div class="row"><span class="mono muted">→</span><span class="mono muted">Event</span><span class="v">Nov 20–22, 2026</span></div>
+          <div class="row"><span class="mono muted">→</span><span class="mono muted">Location</span><span class="v">Online</span></div>
+          <div class="row"><span class="mono muted">→</span><span class="mono muted">Prize pool</span><span class="v">IDR 10.000.000</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="dbt-path">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="mono sig">B2 — Dire Battle Pro Circuit</span><h3>From an open bracket to the international stage.</h3></div>
+      </div>
+      <div class="path">
+        <div class="step done"><div class="n">01</div><h4>Open Series</h4><p>Open tournaments for any Indonesian team. Series 1–4 are complete.</p><div class="bar"><i></i></div><span class="st mono">Series 1–4 · Done</span></div>
+        <div class="step done"><div class="n">02</div><h4>Dire Battle Cup</h4><p>Winners and runners-up of Open Series 1–4 meet in the circuit’s flagship event.</p><div class="bar"><i></i></div><span class="st mono">Champion · Maxwell+4</span></div>
+        <div class="step"><div class="n">03</div><h4>Liga Nasional</h4><p>The national league stage of the circuit.</p><div class="bar"><i></i></div><span class="st mono">Next stage</span></div>
+        <div class="step"><div class="n">04</div><h4>Internasional</h4><p>The top of the ladder: Indonesian teams on the international stage.</p><div class="bar"><i></i></div><span class="st mono">Goal</span></div>
+      </div>
+      <p class="mono muted side-ev">+ Side events between stages: Extra League, extra Open Series, streamer tournaments. Uprising 1 is open now.</p>
+    </div>
+  </section>
+
+  <section id="dbt-results">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="mono sig">B3 — Results</span><h3>Dire Battle Cup.</h3></div>
+        <a class="mono muted" style="text-decoration:none" href="https://www.direborn.team/tournaments/direbattle-dota-2-tournament-by-direborn-esports-cup/schedule" target="_blank" rel="noopener">Full schedule ↗</a>
+      </div>
+
+      <div class="final">
+        <div class="final-head">
+          <div><span class="mono muted">Grand Final · Oct 25, 2026 · 18:00</span><div class="team" style="margin-top:10px">Maxwell+4</div><span class="mono wtag">Winner</span></div>
+          <div class="score">3<i>:</i>2</div>
+          <div class="team r">chad</div>
+        </div>
+        <div class="games">
+          <div class="games-head mono"><span>Game</span><span>Winner</span><span>Maxwell+4</span><span style="text-align:center">Kills</span><span style="text-align:right">chad</span></div>
+          <div id="games"></div>
+        </div>
+      </div>
+
+      <p class="mono muted" style="margin:40px 0 0">Earlier series — tap a series for game stats</p>
+      <div class="series" id="series"></div>
+    </div>
+  </section>
+
+  <section id="dbt-events">
+    <div class="wrap">
+      <div class="sec-head">
+        <div><span class="mono sig">B4 — Tournaments</span><h3>Ongoing &amp; past.</h3></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Tournament</th><th>Date</th><th>Prize pool</th><th>Location</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="nm">Uprising 1</td><td class="num">Nov 20, 2026</td><td class="num">IDR 10.000.000</td><td>Online</td><td><span class="pill open" data-reg-pill>Open registration</span></td></tr>
+            <tr><td class="nm">Dire Battle Cup</td><td class="num">Final Oct 25, 2026</td><td class="num muted">—</td><td class="muted">—</td><td><span class="pill done">Completed · Maxwell+4</span></td></tr>
+            <tr><td class="nm">Open Series 1–4</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td><span class="pill done">Completed</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="dbt-about">
+    <div class="wrap two">
+      <div>
+        <span class="mono sig">B5 — About</span>
+        <h3 class="statement" style="margin-top:14px">Where strategy rules.</h3>
+      </div>
+      <div class="prose">
+        <p>Dire Battle is a Dota 2 tournament series run by Direborn to find and grow the next generation of Indonesian pro players.</p>
+        <p>Every team starts in the open. The Open Series feeds the Dire Battle Cup, and the Cup feeds the stages above it. Results decide who moves up.</p>
+        <div class="socials" style="margin-top:28px">
+          <a href="https://www.instagram.com/direbattle/" target="_blank" rel="noopener"><span>Instagram</span><span class="mono muted">@direbattle ↗</span></a>
+          <a href="https://s.id/direborn_comm" target="_blank" rel="noopener"><span>Community</span><span class="mono muted">Join ↗</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap">
+      <div class="links mono">
+        <button data-go="">Gateway</button>
+        <a href="#direborn" data-go="direborn">Direborn</a>
+        <a href="https://www.instagram.com/direbattle/" target="_blank" rel="noopener">Instagram ↗</a>
+        <a href="https://www.direborn.team/registration" target="_blank" rel="noopener">Registration ↗</a>
+        <a href="https://s.id/direborn_comm" target="_blank" rel="noopener">Community ↗</a>
+      </div>
+      <p class="wordmark long" aria-label="Dire Battle"><span class="glitch" data-text="Direbattle">Direbattle</span><span class="sq"></span></p>
+      <div class="copy mono"><span>© 2026 Direborn Esports. All rights reserved.</span><span>A Direborn tournament series.</span></div>
+    </div>
+  </footer>
+</div>
+
+</main>
+
+<script>
+(function(){
+  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- data (from direborn.team) ---------- */
+  const GAMES=[
+    {g:1,w:'MX4',a:'Doom · Windranger · Witch Doctor · Earth Spirit · Io',k:'45–13',b:'Winter Wyvern · Rubick · Puck · Sven · Slardar'},
+    {g:2,w:'MX4',a:'Doom · Spirit Breaker · Puck · Winter Wyvern · Weaver',k:'51–30',b:'Witch Doctor · Nature\'s Prophet · Clockwerk · Void Spirit · Viper'},
+    {g:3,w:'CHAD',a:'Dazzle · Nature\'s Prophet · Earth Spirit · Rubick · Slardar',k:'21–36',b:'Doom · Ring Master · Lion · Pangolier · Tiny'},
+    {g:4,w:'CHAD',a:'Keeper of the Light · Slark · Witch Doctor · Timbersaw · Io',k:'7–31',b:'Ring Master · Lion · Dawnbreaker · Sand King · Weaver'},
+    {g:5,w:'MX4',a:'Lion · Winter Wyvern · Pangolier · Lifestealer · Tidehunter',k:'40–36',b:'Techies · Ring Master · Dawnbreaker · Earth Spirit · Weaver'}
+  ];
+  const SERIES=[
+    {a:'chad',s:'2–0',b:'Escape Esports',stats:[
+      {g:'Game 1',dur:'39:37',kills:'42–23',gold:'104.8K–73.2K',towers:'9–1',barracks:'6–0',rosh:'2–1'},
+      {g:'Game 2',dur:'35:55',kills:'40–31',gold:'86.3K–64.9K',towers:'9–2',barracks:'4–0',rosh:'1–0'}]},
+    {a:'Escape Esports',s:'2–0',b:'ULAR REBORN'},
+    {a:'Maxwell+4',s:'2–1',b:'chad'}
+  ];
+
+  $('#games').innerHTML=GAMES.map(x=>`<div class="game"><span class="mono muted">Game ${x.g}</span><span><span class="chip mono ${x.w==='MX4'?'w':''}">${x.w} win</span></span><span class="h">${x.a}</span><span class="k">${x.k}${(()=>{const [p,q]=x.k.split('–').map(Number);const a=Math.round(p/(p+q)*100);return `<span class="kbar" aria-hidden="true"><i style="width:${a}%"></i><i style="width:${100-a}%"></i></span>`})()}</span><span class="h r">${x.b}</span></div>`).join('');
+
+  $('#series').innerHTML=SERIES.map((x,i)=>{
+    const det=x.stats
+      ? `<table class="stat"><thead><tr><th></th><th>Duration</th><th>Kills</th><th>Gold</th><th>Towers</th><th>Barracks</th><th>Roshans</th></tr></thead><tbody>${x.stats.map(r=>`<tr><td class="w">${r.g} · ${x.a} win</td><td>${r.dur}</td><td>${r.kills}</td><td>${r.gold}</td><td>${r.towers}</td><td>${r.barracks}</td><td>${r.rosh}</td></tr>`).join('')}</tbody></table><div class="nodetail mono">Figures: ${x.a} – ${x.b}</div>`
+      : `<div class="nodetail">Game stats for this series aren’t published yet.</div>`;
+    return `<button class="srow" aria-expanded="false" aria-controls="sd${i}" id="sb${i}"><span class="t">${x.a}</span><span class="s">${x.s}</span><span class="t r">${x.b}</span><span class="x" aria-hidden="true">+</span></button><div class="sdetail" id="sd${i}" role="region" aria-labelledby="sb${i}" hidden>${det}</div>`;
+  }).join('');
+  $$('.srow').forEach(b=>b.addEventListener('click',()=>{
+    const open=b.getAttribute('aria-expanded')==='true';
+    b.setAttribute('aria-expanded',String(!open));
+    document.getElementById(b.getAttribute('aria-controls')).hidden=open;
+  }));
+
+  /* ticker */
+  const words=['Born to Regenerate','Directed to Dominate','Where strategy rules','Dota 2 circuit · By Direborn Esports'];
+  const seq=words.map((w,i)=>`<span class="${i%2?'d':''}">${w}</span><span class="d">■</span>`).join('');
+  $('#ticker').innerHTML=seq+seq+seq+seq;
+
+  /* ---------- router ---------- */
+  const views={'':'v-gate',direborn:'v-direborn',direbattle:'v-direbattle'};
+  let current=null;
+  function show(name,animate){
+    if(!(name in views)) name='';
+    if(name===current) return;
+    const apply=()=>{
+      $$('.view').forEach(v=>v.classList.remove('on'));
+      const v=document.getElementById(views[name]); v.classList.add('on');
+      document.body.dataset.side=v.dataset.side;
+      document.documentElement.style.setProperty('--sig', v.dataset.side==='dbt'?'var(--green)':'var(--red)');
+      window.scrollTo(0,0); current=name;
+    };
+    if(animate && !reduce && current!==null){
+      const w=$('#wipe'); w.style.background= name==='direbattle'?'var(--green)':'var(--red)';
+      w.classList.remove('go'); void w.offsetWidth; w.classList.add('go');
+      setTimeout(apply,320);
+    } else apply();
+  }
+  document.addEventListener('click',e=>{
+    const g=e.target.closest('[data-go]');
+    if(g){e.preventDefault(); const n=g.dataset.go; if(n) location.hash=n; else history.replaceState(null,'',location.pathname+location.search); show(n,true); return;}
+    const t=e.target.closest('[data-to]');
+    if(t){const s=document.getElementById(t.dataset.to); if(s) s.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});}
+  });
+  addEventListener('hashchange',()=>show(location.hash.slice(1),true));
+  show(location.hash.slice(1),false);
+
+  /* active subnav while scrolling */
+  const io=new IntersectionObserver(es=>es.forEach(en=>{
+    if(!en.isIntersecting) return;
+    const id=en.target.id;
+    $$('.subnav button[data-to]').forEach(b=>b.classList.toggle('cur',b.dataset.to===id));
+  }),{rootMargin:'-40% 0px -55% 0px'});
+  $$('section[id]').forEach(s=>io.observe(s));
+
+  /* ---------- clock, timecode, countdown ---------- */
+  const fmt=n=>String(n).padStart(2,'0');
+  const close=Date.UTC(2026,10,16,16,59,59); // Nov 16, 2026 23:59:59 WIB
+  const t0=performance.now();
+  function tick(){
+    const now=new Date();
+    const wib=new Date(now.getTime()+7*3600e3);
+    $('#clock').textContent=`WIB ${fmt(wib.getUTCHours())}:${fmt(wib.getUTCMinutes())}:${fmt(wib.getUTCSeconds())}`;
+    let left=Math.max(0,close-now.getTime());
+    const d=Math.floor(left/864e5), h=Math.floor(left%864e5/36e5), m=Math.floor(left%36e5/6e4), s=Math.floor(left%6e4/1e3);
+    $('[data-c="d"]').textContent=fmt(d); $('[data-c="h"]').textContent=fmt(h); $('[data-c="m"]').textContent=fmt(m); $('[data-c="s"]').textContent=fmt(s);
+    const label= left<=0 ? 'Registration closed' : d>=1 ? `Open Registration · ${d}d left` : 'Open Registration · closes today';
+    $$('[data-reg-short],[data-reg-long]').forEach(el=>el.textContent=label);
+    const pill=$('[data-reg-pill]'); if(left<=0){pill.textContent='Registration closed';pill.classList.remove('open');}
+  }
+  function tc(){
+    const e=(performance.now()-t0)/1000, f=Math.floor((e%1)*25);
+    const str=`${fmt(Math.floor(e/3600))}:${fmt(Math.floor(e/60)%60)}:${fmt(Math.floor(e)%60)}:${fmt(f)}`;
+    $$('[data-tc]').forEach(el=>el.textContent=str);
+    if(!reduce) requestAnimationFrame(tc);
+  }
+  tick(); setInterval(tick,1000); tc();
+
+  /* ---------- roster ---------- */
+  const ROSTER=[['Dreamocel','Randy Sapoetra'],['woMy','Said Romy'],['PotaT2','Noel Pinot'],['db-','Daud Budiawan'],['dalul','Abdalla Putra Afemi']];
+  const sil=i=>`<svg viewBox="0 0 200 250" aria-hidden="true"><defs><linearGradient id="sg${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3a3a"/><stop offset="1" stop-color="#161616"/></linearGradient></defs><path d="M100 40c22 0 38 18 38 44 0 20-8 36-20 44v14c34 6 62 26 70 66v42H12v-42c8-40 36-60 70-66v-14c-12-8-20-24-20-44 0-26 16-44 38-44z" fill="url(#sg${i})"/><path d="M62 74c6-26 24-36 38-36s32 10 38 36c-10-8-24-12-38-12s-28 4-38 12z" fill="#262626"/></svg>`;
+  $('#roster').innerHTML=ROSTER.map(([id,nm],i)=>`<article class="card" data-i="${i}">
+    <div class="photo">${sil(i)}</div><img class="pimg" alt="${id} — ${nm}" hidden>
+    <div class="halftone"></div><span class="ghost" aria-hidden="true">${id}</span><span class="scanl" aria-hidden="true"></span>
+    <div class="ctop"><span class="mono ph">Photo slot</span><label class="pick" for="pf${i}">Preview photo</label><input type="file" accept="image/*" id="pf${i}" hidden></div>
+    <div><div class="id glitch" data-text="${id}">${id}</div><div class="nm">${nm}</div></div></article>`).join('');
+  function setPhoto(card,file){
+    if(!file||!file.type.startsWith('image/')) return;
+    const r=new FileReader(); r.onload=()=>{const im=card.querySelector('.pimg'); im.src=r.result; im.hidden=false; card.querySelector('.ph').textContent='Preview';}; r.readAsDataURL(file);
+  }
+  $$('.card').forEach(card=>{
+    card.querySelector('input').addEventListener('change',e=>setPhoto(card,e.target.files[0]));
+    card.addEventListener('dragover',e=>{e.preventDefault();card.classList.add('drag');});
+    card.addEventListener('dragleave',()=>card.classList.remove('drag'));
+    card.addEventListener('drop',e=>{e.preventDefault();card.classList.remove('drag');setPhoto(card,e.dataTransfer.files[0]);});
+    if(!reduce && matchMedia('(pointer:fine)').matches){
+      card.addEventListener('mousemove',e=>{const b=card.getBoundingClientRect();const x=(e.clientX-b.left)/b.width-.5,y=(e.clientY-b.top)/b.height-.5;card.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg)`;});
+      card.addEventListener('mouseleave',()=>card.style.transform='');
+    }
+  });
+
+  /* ---------- meter ---------- */
+  $('#meter-db').innerHTML=Array.from({length:22},(_,i)=>`<i style="animation-delay:${(-Math.random()).toFixed(2)}s;animation-duration:${(.45+Math.random()*.7).toFixed(2)}s"></i>`).join('');
+
+  /* ---------- scramble on hover ---------- */
+  const glyphs='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/#_';
+  function scramble(el){
+    if(reduce||el._run) return; el._run=1;
+    const fin=el.dataset.orig||(el.dataset.orig=el.textContent); let f=0; const total=14;
+    const step=()=>{f++; el.textContent=fin.split('').map((c,i)=>c===' '||i<f*fin.length/total?c:glyphs[Math.random()*glyphs.length|0]).join('');
+      if(f<total) requestAnimationFrame(step); else {el.textContent=fin; el._run=0;}};
+    step();
+  }
+  $$('.subnav button, .enter, .btn, .sec-head h3').forEach(el=>{
+    const tn=[...el.childNodes].find(n=>n.nodeType===3&&n.textContent.trim());
+    if(!tn) return;
+    const s=document.createElement('span'); s.textContent=tn.textContent; tn.replaceWith(s);
+    const host=el.closest('.side')||el;
+    host.addEventListener('mouseenter',()=>scramble(s));
+  });
+  /* decode gateway headlines on load */
+  if(!reduce) $$('.side h2').forEach(h=>{const html=h.innerHTML;const lines=h.innerText.split('\n');let f=0;
+    const run=()=>{f++;h.innerHTML=lines.map(l=>l.split('').map((c,i)=>i<f/2?c:glyphs[Math.random()*glyphs.length|0]).join('')).join('<br>');
+      if(f<22) setTimeout(run,35); else h.innerHTML=html;}; run();});
+
+  /* ---------- cursor ---------- */
+  const cur=$('#cursor'), cxy=$('#cxy');
+  if(!reduce && matchMedia('(pointer:fine)').matches){
+    let tx=0,ty=0,cx=0,cy=0;
+    addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;cxy.textContent=`X ${String(tx).padStart(4,'0')} · Y ${String(ty).padStart(4,'0')}`;
+      cur.classList.toggle('hot',!!e.target.closest('a,button,label,.card,.srow'));});
+    (function loop(){cx+=(tx-cx)*.25;cy+=(ty-cy)*.25;cur.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(loop);})();
+  }
+
+  /* ---------- canvases ---------- */
+  const mouse={x:.5,y:.5};
+  addEventListener('mousemove',e=>{mouse.x=e.clientX/innerWidth;mouse.y=e.clientY/innerHeight;});
+  function setup(cv){const dpr=Math.min(2,devicePixelRatio||1);const r=cv.getBoundingClientRect();cv.width=Math.max(1,r.width*dpr);cv.height=Math.max(1,r.height*dpr);const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);return {c,w:r.width,h:r.height};}
+  const RED='255,43,43', GRN='43,212,125';
+  function wave(cv,t){
+    const {c,w,h}=cv._d; c.clearRect(0,0,w,h);
+    const mx=cv._hover?mouse.x*innerWidth-cv.getBoundingClientRect().left:w*.6;
+    for(let k=0;k<6;k++){
+      c.beginPath();
+      for(let x=0;x<=w;x+=4){
+        const env=Math.exp(-Math.pow((x-mx)/(w*.28),2));
+        const y=h*.42+k*14+Math.sin(x*.018+t*.0016*(1+k*.15)+k)*(10+env*(cv._hover?70:38))+Math.sin(x*.05+t*.003)*env*6;
+        x?c.lineTo(x,y):c.moveTo(x,y);
+      }
+      c.strokeStyle=`rgba(${RED},${k===0?.55:.12+k*.03})`; c.lineWidth=k===0?1.5:1; c.stroke();
+    }
+    // scan dots
+    c.fillStyle=`rgba(${RED},.5)`;
+    for(let i=0;i<40;i++){const x=(i*97+t*.05)%w;c.fillRect(x,h*.42-60+((i*53)%160),2,2);}
+  }
+  function bracket(cv,t){
+    const {c,w,h}=cv._d; c.clearRect(0,0,w,h);
+    const x0=w*.42, dx=(w*.92-x0)/3, top=h*.2, span=h*.5;
+    const ys=[Array.from({length:8},(_,i)=>top+span*(i+.5)/8)];
+    for(let r=1;r<4;r++){const p=ys[r-1];ys.push(Array.from({length:p.length/2},(_,i)=>(p[2*i]+p[2*i+1])/2));}
+    c.strokeStyle=`rgba(${GRN},.22)`; c.lineWidth=1;
+    for(let r=0;r<3;r++) ys[r].forEach((y,i)=>{const xa=x0+r*dx,xm=xa+dx/2,yn=ys[r+1][i>>1];c.beginPath();c.moveTo(xa,y);c.lineTo(xm,y);c.lineTo(xm,yn);c.lineTo(xa+dx,yn);c.stroke();});
+    ys[0].forEach(y=>{c.fillStyle=`rgba(${GRN},.35)`;c.fillRect(x0-34,y-1,30,2);});
+    c.fillStyle=`rgba(${GRN},.9)`;c.fillRect(x0+3*dx-3,ys[3][0]-3,6,6);
+    const speed=cv._hover?.00045:.00022;
+    for(let i=0;i<8;i++){
+      const pts=[];let idx=i;
+      for(let r=0;r<3;r++){const xa=x0+r*dx,xm=xa+dx/2;pts.push([xa,ys[r][idx]],[xm,ys[r][idx]],[xm,ys[r+1][idx>>1]]);idx>>=1;}
+      pts.push([x0+3*dx,ys[3][0]]);
+      const L=[];let tot=0;for(let j=1;j<pts.length;j++){const d=Math.hypot(pts[j][0]-pts[j-1][0],pts[j][1]-pts[j-1][1]);L.push(d);tot+=d;}
+      let s=((t*speed+i*.13)%1)*tot;
+      for(let j=0;j<L.length;j++){if(s<=L[j]){const f=s/L[j];const x=pts[j][0]+(pts[j+1][0]-pts[j][0])*f,y=pts[j][1]+(pts[j+1][1]-pts[j][1])*f;
+        c.fillStyle=`rgba(${GRN},.95)`;c.fillRect(x-2,y-2,4,4);c.fillStyle=`rgba(${GRN},.18)`;c.fillRect(x-6,y-6,12,12);break;} s-=L[j];}
+    }
+  }
+  const fxs=$$('canvas.fx').map(cv=>{cv._d=setup(cv);cv._fn=cv.dataset.fx==='wave'?wave:bracket;const side=cv.closest('.side');
+    side.addEventListener('mouseenter',()=>cv._hover=1);side.addEventListener('mouseleave',()=>cv._hover=0);return cv;});
+  addEventListener('resize',()=>fxs.forEach(cv=>cv._d=setup(cv)));
+  // sides resize during hover (flex-grow), keep canvas fitted
+  if('ResizeObserver' in window){const ro=new ResizeObserver(()=>fxs.forEach(cv=>cv._d=setup(cv)));fxs.forEach(cv=>ro.observe(cv));}
+  function frame(t){ if(current===''){fxs.forEach(cv=>cv._fn(cv,t));} if(!reduce) requestAnimationFrame(frame); }
+  if(reduce) fxs.forEach(cv=>cv._fn(cv,0)); else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
